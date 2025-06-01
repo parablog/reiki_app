@@ -1,12 +1,14 @@
-import 'package:flutter/material.dart';
 import 'package:audio_service/audio_service.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:flutter/material.dart';
+
 import 'audio_player_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final audioHandler = await AudioService.init(
-    builder: () => AnalyticsAudioHandler(MyAudioHandler()),
+    // builder: () => MyAudioHandler(),
+    // builder: () => DualAudioHandler(MyAudioHandler()),
+    builder: () => DualPlayerAudioHandler(),
     config: const AudioServiceConfig(
       androidNotificationChannelId: 'com.example.reiki_app.channel.audio',
       androidNotificationChannelName: 'Audio playback',
@@ -14,47 +16,6 @@ void main() async {
     ),
   );
   runApp(MyApp(audioHandler: audioHandler));
-}
-
-class AnalyticsAudioHandler extends BaseAudioHandler {
-  final _player = AudioPlayer();
-  late AudioHandler _handler;
-
-  AnalyticsAudioHandler(AudioHandler handler) {
-    _handler = handler;
-
-    _player.playerStateStream.listen((state) {
-      playbackState.add(playbackState.value.copyWith(
-        playing: state.playing,
-        processingState: {
-          ProcessingState.idle: AudioProcessingState.idle,
-          ProcessingState.loading: AudioProcessingState.loading,
-          ProcessingState.buffering: AudioProcessingState.buffering,
-          ProcessingState.ready: AudioProcessingState.ready,
-          ProcessingState.completed: AudioProcessingState.completed,
-        }[state.processingState]!,
-      ));
-    });
-  }
-
-  @override
-  Future<void> play() async {
-    print("playing");
-    playFromUri(Uri.parse("assets:///assets/audio/CJ_Sterner_PerpetualMeditations.mp3"));
-    _handler.playFromUri(Uri.parse("assets:///assets/audio/60-seconds-with-bell.mp3"));
-
-    return _player.play();
-  }
-
-  @override
-  Future<void> pause() async {
-    return _player.pause();
-  }
-
-  @override
-  Future<void> stop() {
-    return _player.stop();
-  }
 }
 
 class MyApp extends StatelessWidget {
@@ -82,8 +43,17 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   @override
   void initState() {
     super.initState();
-    widget.audioHandler.playFromUri(Uri.parse("assets:///assets/audio/bell_xs.mp3"));
-        //.setAudioSource('assets/audio/CJ_Sterner_PerpetualMeditations.mp3');
+    // widget.audioHandler.playFromUri(
+    //   Uri.parse("assets:///assets/audio/nature.mp3"),
+    // );
+    /*var handler = widget.audioHandler as DualAudioHandler;
+    handler.setAudioSource('assets/audio/CJ_Sterner_PerpetualMeditations.mp3');
+    handler.setInnerAudioSource('assets/audio/60-seconds-with-bell.mp3');*/
+
+    var handler = widget.audioHandler as DualPlayerAudioHandler;
+
+    // handler.setAudioSource1('assets/audio/CJ_Sterner_PerpetualMeditations.mp3');
+    // handler.setAudioSource2('assets/audio/60-seconds-with-bell.mp3');
   }
 
   @override
